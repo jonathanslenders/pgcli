@@ -17,9 +17,14 @@ def test_select_suggests_cols_with_qualified_table_scope():
             {'type': 'column', 'tables': [('sch', 'tabl', None)]},
             {'type': 'function', 'schema': []}])
 
-def test_where_suggests_columns_functions():
-    suggestions = suggest_type('SELECT * FROM tabl WHERE ',
-            'SELECT * FROM tabl WHERE ')
+
+@pytest.mark.parametrize('expression', [
+    'SELECT * FROM tabl WHERE ',
+    'SELECT * FROM tabl WHERE foo = ',
+    'SELECT * FROM tabl WHERE foo = 1 AND ',
+])
+def test_where_suggests_columns_functions(expression):
+    suggestions = suggest_type(expression, expression)
     assert sorted_dicts(suggestions) == sorted_dicts([
             {'type': 'column', 'tables': [(None, 'tabl', None)]},
             {'type': 'function', 'schema': []}])

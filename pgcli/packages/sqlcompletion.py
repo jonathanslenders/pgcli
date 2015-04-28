@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 import sqlparse
-from sqlparse.sql import Comparison, Identifier
+from sqlparse.sql import Comparison, Identifier, Where
 from sqlparse.tokens import Keyword
 from .parseutils import last_word, extract_tables, find_prev_keyword
 from .pgspecial import parse_special_command
@@ -135,17 +135,21 @@ def suggest_special(text):
 def suggest_based_on_last_token(token, text_before_cursor, full_text, identifier):
     if isinstance(token, string_types):
         token_v = token.lower()
-    else:
+    elif isinstance(token, Comparison):
         # If 'token' is a Comparison type such as
         # 'select * FROM abc a JOIN def d ON a.id = d.'. Then calling
         # token.value on the comparison type will only return the lhs of the
         # comparison. In this case a.id. So we need to do token.tokens to get
         # both sides of the comparison and pick the last token out of that
         # list.
-        if isinstance(token, Comparison):
-            token_v = token.tokens[-1].value.lower()
-        else:
-            token_v = token.value.lower()
+        token_v = token.tokens[-1].value.lower()
+    elif isinstance(token, Where):
+        # sqlparse groups all tokens from the where clause into a single token
+        # list. This means that token.value may be something like 'where foo'.
+        # Manually override token value to just 'where'
+        token_v = 'where'
+    else:
+        token_v = token.value.lower()
 
     if not token:
         return [{'type': 'keyword'}, {'type': 'special'}]
