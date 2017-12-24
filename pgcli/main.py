@@ -27,11 +27,11 @@ try:
     import setproctitle
 except ImportError:
     setproctitle = None
-from prompt_toolkit import Application
+from prompt_toolkit.completion import DynamicCompleter
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.shortcuts import Prompt, CompleteStyle
 from prompt_toolkit.document import Document
-from prompt_toolkit.filters import Always, HasFocus, IsDone
+from prompt_toolkit.filters import HasFocus, IsDone
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import (ConditionalProcessor,
                                         HighlightMatchingBracketProcessor)
@@ -677,6 +677,7 @@ class PGCli(object):
                 tempfile_suffix='.sql',
                 multiline=pg_is_multiline(self),
                 history=history,
+                completer=DynamicCompleter(lambda: self.completer),
                 complete_while_typing=True,
 
                 style=style_factory(self.syntax_style, self.cli_style),
@@ -830,12 +831,6 @@ class PGCli(object):
             elif persist_priorities == 'none':
                 # Leave the new prioritizer as is
                 pass
-
-            # When pgcli is first launched we call refresh_completions before
-            # instantiating the Prompt object. So it is necessary to check if
-            # this exists before trying the replace the completer object.
-            if self.prompt_app:
-                self.prompt_app.completer = new_completer
 
     def get_completions(self, text, cursor_positition):
         with self._completer_lock:
