@@ -56,5 +56,5 @@ def create_toolbar_tokens_func(pgcli):
         if pgcli.completion_refresher.is_refreshing():
             result.append((token, '     Refreshing completions...'))
 
-        return result
-    return PygmentsTokens(get_toolbar_tokens)
+        return PygmentsTokens(result)
+    return get_toolbar_tokens
